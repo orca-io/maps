@@ -132,7 +132,7 @@ class NativeMapViewModule(context: ReactApplicationContext, val viewTagResolver:
             val layerIds = ConvertUtils.toStringList(withLayerIDs)
 
             it.queryRenderedFeaturesInRect(
-                ConvertUtils.toRectF(withBBox),
+                if (withBBox.size() == 0) null else rectF,
                 ExpressionParser.from(withFilter),
                 if (layerIds.size == 0) null else layerIds,
                 createCommandResponse(promise)
