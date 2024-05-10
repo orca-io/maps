@@ -123,6 +123,7 @@ open class RNMBXMapComponentBase : UIView, RNMBXMapComponent {
 open class RNMBXCamera : RNMBXMapComponentBase {
   var cameraAnimator: BasicCameraAnimator?
   let cameraUpdateQueue = CameraUpdateQueue()
+  var maxPitch = 50.0
   
   // MARK: React properties
   
@@ -269,6 +270,8 @@ open class RNMBXCamera : RNMBXMapComponentBase {
       }
       options.minZoom = self.minZoomLevel?.CGFloat
       options.maxZoom = self.maxZoomLevel?.CGFloat
+
+      options.maxPitch = self.maxPitch
       
       logged("RNMBXCamera._updateMaxBounds") {
         try map.mapboxMap.setCameraBounds(with: options)

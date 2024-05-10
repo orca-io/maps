@@ -60,6 +60,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
     private val mCenterCoordinate: ScreenCoordinate? = null
     private val mAnimated = false
     private val mHeading = 0.0
+    private val mMaxPitch = 50.0
 
     private var mFollowUserLocation = defaultFollowUserLocation
     private var mFollowUserMode: String? = null
@@ -183,6 +184,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
             builder.bounds(mMaxBounds?.toBounds())
             builder.minZoom(mMinZoomLevel ?: 0.0) // Passing null does not reset this value.
             builder.maxZoom(mMaxZoomLevel ?: 25.0) // Passing null does not reset this value.
+            builder.maxPitch(mMaxPitch)
             map.setBounds(builder.build())
             mCameraStop?.let { updateCamera(it) }
         }
