@@ -95,7 +95,7 @@ abstract class RNMBXLayer<T : Layer?>(protected var mContext: Context) : Abstrac
     fun setVisible(visible: Boolean) {
         mVisible = visible
         if (mLayer != null) {
-            mLayer!!.visibility(if (mVisible) Visibility.VISIBLE else Visibility.NONE)
+            mLayer!!.visibility(if (mVisible) com.mapbox.maps.extension.style.layers.properties.generated.Visibility.VISIBLE else com.mapbox.maps.extension.style.layers.properties.generated.Visibility.NONE)
         }
     }
 
