@@ -371,6 +371,7 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             }
 
             override fun onMove(moveGestureDetector: MoveGestureDetector): Boolean {
+                if (!mapView.gestures.scrollEnabled) return true
                 return mapGesture(MapGestureType.Move, moveGestureDetector)
             }
 
