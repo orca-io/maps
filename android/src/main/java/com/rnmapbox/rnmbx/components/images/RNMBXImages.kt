@@ -36,7 +36,6 @@ fun Style.addBitmapImage(imageId: String, bitmap: Bitmap, sdf: Boolean = false, 
     return this.addStyleImage(
         imageId,
         (1.0/((160.0/bitmap.density)) * scale).toFloat() ,
-        scale.toFloat(),
         Image(bitmap.width, bitmap.height, byteBuffer.array().toImageData()),
         sdf,
         stretchX,
