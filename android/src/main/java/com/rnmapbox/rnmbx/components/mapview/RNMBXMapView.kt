@@ -1006,8 +1006,8 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
     fun queryRenderedFeaturesInRect(rect: RectF?, filter: Expression?, layerIDs: List<String>?, response: CommandResponse) {
         val size = mMap!!.getMapOptions().size
         val screenBox = if (rect == null) ScreenBox(ScreenCoordinate(0.0, 0.0), ScreenCoordinate(size?.width!!.toDouble(), size?.height!!.toDouble())) else ScreenBox(
-                ScreenCoordinate(rect.right.toDouble(), rect.bottom.toDouble() ),
                 ScreenCoordinate(rect.left.toDouble(), rect.top.toDouble()),
+                ScreenCoordinate(rect.right.toDouble(), rect.bottom.toDouble() ),
         )
         mMap.queryRenderedFeatures(
                 RenderedQueryGeometry(screenBox),
