@@ -11,7 +11,6 @@ import com.mapbox.maps.extension.style.light.LightPosition
 import com.rnmapbox.rnmbx.utils.ExpressionParser
 import com.rnmapbox.rnmbx.utils.Logger
 import java.util.ArrayList
-import java.util.Locale
 
 class RNMBXStyleValue(config: ReadableMap) {
     val type: String?
@@ -20,7 +19,6 @@ class RNMBXStyleValue(config: ReadableMap) {
     private val mPayload: ReadableMap?
     var imageURI: String? = ""
     private var isAddImage = false
-    private val locale = Locale("en")
     var imageScale: Double? = null
     private fun isTokenizedValue(value: String): Boolean {
         return value.startsWith("{") && value.endsWith("}")
@@ -42,7 +40,7 @@ class RNMBXStyleValue(config: ReadableMap) {
     }
 
     fun getEnumName(): String {
-        return mPayload!!.getString("value")!!.uppercase(locale).replace("-", "_")
+        return mPayload!!.getString("value")!!.uppercase().replace("-", "_")
     }
 
     fun getDouble(key: String?): Double {
