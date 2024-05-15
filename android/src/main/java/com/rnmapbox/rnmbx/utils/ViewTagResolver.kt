@@ -57,7 +57,7 @@ open class ViewTagResolver(val context: ReactApplicationContext) {
     fun <V>withViewResolved(viewTag: Int, reject: Promise? = null, fn: (V) -> Unit) {
         context.runOnUiQueueThread() {
             try {
-                val resolvedView: View? = manager.resolveView(viewTag)
+                val resolvedView: View? = manager?.resolveView(viewTag)
                 val view = resolvedView as? V
                 if (view != null) {
                     fn(view)
