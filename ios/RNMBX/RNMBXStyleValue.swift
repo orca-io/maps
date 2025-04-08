@@ -274,7 +274,7 @@ class RNMBXStyleValue {
     }
   }
   
-  func asExpression(json: [Any]) -> Expression {
+  func asExpression(json: [Any]) -> MapboxMaps.Expression {
     let data = try! JSONSerialization.data(withJSONObject: json, options: .prettyPrinted)
     let decodedExpression = try! JSONDecoder().decode(Expression.self, from: data)
     return decodedExpression
@@ -356,7 +356,7 @@ class RNMBXStyleValue {
     }
   }
   
-  private func _toExpressions(_ valueObj: Any) throws -> Expression {
+  private func _toExpressions(_ valueObj: Any) throws -> MapboxMaps.Expression {
     if let valueObj = valueObj as? NSNumber {
       throw RNMBXError.parseError("valueObj is a single number and cannot be converted to expressions")
     }
@@ -435,7 +435,7 @@ class RNMBXStyleValue {
     return mglStyleValueEnum()
   }
     
-  func parseExpression(_ expression: [Any]) throws -> Expression {
+  func parseExpression(_ expression: [Any]) throws -> MapboxMaps.Expression {
     let data = try JSONSerialization.data(withJSONObject: expression, options: .prettyPrinted)
     let decodedExpression = try JSONDecoder().decode(Expression.self, from: data)
     return decodedExpression
