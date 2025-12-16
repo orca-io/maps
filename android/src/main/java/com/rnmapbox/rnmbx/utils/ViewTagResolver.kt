@@ -42,7 +42,7 @@ open class ViewTagResolver(val context: ReactApplicationContext) {
         if (list != null) {
             context.runOnUiQueueThread {
                 try {
-                    val view = manager.resolveView(viewTag)
+                    val view = manager?.resolveView(viewTag)
 
                     list.forEach { it.fn(view) }
                 } catch (err: IllegalViewOperationException) {
@@ -58,19 +58,19 @@ open class ViewTagResolver(val context: ReactApplicationContext) {
         createdViews.remove(viewTag)
     }
 
-    private val manager : UIManager
+    private val manager : UIManager?
         get() =
             if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
-                UIManagerHelper.getUIManager(context, UIManagerType.FABRIC)!!
+                UIManagerHelper.getUIManager(context, UIManagerType.FABRIC)
             } else {
-                UIManagerHelper.getUIManager(context, UIManagerType.DEFAULT)!!
+                UIManagerHelper.getUIManager(context, UIManagerType.DEFAULT)
             }
 
     // calls on UiQueueThread with resolved view
     fun <V>withViewResolved(viewTag: Int, reject: Promise? = null, fn: (V) -> Unit) {
         context.runOnUiQueueThread() {
             try {
-                val resolvedView: View? = manager.resolveView(viewTag)
+                val resolvedView: View? = manager?.resolveView(viewTag)
                 val view = resolvedView as? V
                 if (view != null) {
                     fn(view)
