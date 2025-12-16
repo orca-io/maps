@@ -459,8 +459,7 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
                 val mapDataDir = File(mReactContext.filesDir.absolutePath + "/.mapbox/map_data")
                 Log.d(LOG_TAG, "hardResetDatabase: deleting ${mapDataDir.absolutePath}")
                 if (mapDataDir.exists()) {
-                    val deleted = mapDataDir.deleteRecursively()
-                    Log.d(LOG_TAG, "hardResetDatabase: deleteRecursively result=$deleted")
+                    mapDataDir.deleteRecursively()
                 }
                 Log.d(LOG_TAG, "hardResetDatabase: done")
                 promise.resolve(null)

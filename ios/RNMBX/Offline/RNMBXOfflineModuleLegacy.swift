@@ -6,6 +6,7 @@ class RNMBXOfflineModuleLegacy: RCTEventEmitter {
   final let CompleteRegionDownloadState = 2
   
   lazy var offlineRegionManager: OfflineRegionManager = {
+    // This logic should be aligned with MapView initialization @see ios/RNMBX/RNMBXMapView.swift
     let fileManager = FileManager.default
     let appSupport = fileManager.urls(
       for: .applicationSupportDirectory,
