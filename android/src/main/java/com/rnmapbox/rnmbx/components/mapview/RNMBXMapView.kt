@@ -1171,7 +1171,8 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             val layer = style.getLayer(it.id)
             if ((layer != null) && match(layer, sourceId, sourceLayerId)) {
                 layer.visibility(
-                    if (visible) Visibility.VISIBLE else Visibility.NONE
+                    // Fix for Apollo build issue caused by android-35.jar
+                    if (visible) com.mapbox.maps.extension.style.layers.properties.generated.Visibility.VISIBLE else com.mapbox.maps.extension.style.layers.properties.generated.Visibility.NONE
                 )
             }
         }
