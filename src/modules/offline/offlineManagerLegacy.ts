@@ -117,6 +117,21 @@ class OfflineManagerLegacy {
   }
 
   /**
+   * Fully resets offline region database file by deleting both `.mapbox/map_data` and `.mapbox_custom` directories,
+   * then reinitializes the OfflineRegionManager to point to a new data directory (iOS only).
+   *
+   * On iOS, this is required because the Mapbox SDK does not automatically recreate the `map_data` database after deletion.
+   * After calling this, all subsequent offline region operations will use a fresh, isolated storage location.
+   *
+   * On Android, only `.mapbox/map_data` is removed; explicit reinitialization is not needed as the Mapbox C++ manager recreates the database automatically.
+   */
+  async hardResetDatabase() {
+    await MapboxOfflineManager.hardResetDatabase();
+    this._offlinePacks = {};
+    await this._initialize(true);
+  }
+
+  /**
    * Deletes the existing database, which includes both the ambient cache and offline packs, then reinitializes it.
    *
    * @example

@@ -254,14 +254,54 @@ open class RNMBXMapView: UIView, RCTInvalidating {
     if let mapViewImpl = mapViewImpl, let mapViewInstance = createAndAddMapViewImpl(mapViewImpl, self) {
       _mapView = mapViewInstance
     } else {
-  #if RNMBX_11
-      _mapView = MapView(frame: self.bounds, mapInitOptions:  MapInitOptions())
-  #else
+
+      // This logic should be aligned with offlineRegionManager initialization @see ios/RNMBX/Offline/RNMBXOfflineModuleLegacy.swift
+      let fileManager = FileManager.default
+      let appSupport = fileManager.urls(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask
+      ).first!
+
+      // Default: Library/Application Support/.mapbox/map_data
+      let defaultDataPath = appSupport.appendingPathComponent(".mapbox/map_data")
+
+      // Preferred: Library/Application Support/.mapbox_custom/XXXX/map_data/map_data.db
+      var customDataPath: URL? = nil
+      let customRoot = appSupport.appendingPathComponent(".mapbox_custom", isDirectory: true)
+
+      if fileManager.fileExists(atPath: customRoot.path),
+        let entries = try? fileManager.contentsOfDirectory(
+          at: customRoot,
+          includingPropertiesForKeys: [.isDirectoryKey],
+          options: []
+        ) {
+        for entry in entries {
+          // Only consider subdirectories under .mapbox_custom
+          if let isDir = try? entry.resourceValues(forKeys: [.isDirectoryKey]).isDirectory,
+            isDir == true {
+            let candidateMapData = entry.appendingPathComponent("map_data", isDirectory: true)
+            let candidateDb = candidateMapData.appendingPathComponent("map_data.db")
+
+            if fileManager.fileExists(atPath: candidateDb.path) {
+              customDataPath = candidateMapData
+              break
+            }
+          }
+        }
+      }
+
+      let dataPathURL = customDataPath ?? defaultDataPath
+      
       let accessToken = RNMBXModule.accessToken
       if accessToken == nil {
         Logger.log(level: .error, message: "No accessToken set, please call Mapbox.setAccessToken(...)")
       }
-      let resourceOptions = ResourceOptions(accessToken: accessToken ?? "")
+      let resourceOptions = ResourceOptions(accessToken: accessToken ?? "", dataPathURL: dataPathURL)
+      
+  #if RNMBX_11
+      _mapView = MapView(frame: self.bounds, mapInitOptions:  MapInitOptions(resourceOptions: resourceOptions))
+  #else
+
       _mapView = MapView(frame: frame, mapInitOptions: MapInitOptions(resourceOptions: resourceOptions))
   #endif
       _mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
