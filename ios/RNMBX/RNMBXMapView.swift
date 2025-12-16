@@ -293,6 +293,11 @@ open class RNMBXMapView: UIView, RCTInvalidating {
     get { _mapView?.mapboxMap }
   }
 
+  // Provide public method to get mapbox from MapView
+  public func getMapboxMap() -> MapboxMap {
+    return self.mapView.mapboxMap
+  }
+
   @objc public func addToMap(_ subview: UIView) {
     withMapView { mapView in
       // Check for RNMBXMapAndMapViewComponent first (requires MapView)
