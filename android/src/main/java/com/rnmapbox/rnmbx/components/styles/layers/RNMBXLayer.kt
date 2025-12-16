@@ -18,7 +18,6 @@ import com.rnmapbox.rnmbx.components.RemovalReason
 import com.rnmapbox.rnmbx.utils.ExpressionParser
 import java.lang.ClassCastException
 import com.rnmapbox.rnmbx.utils.Logger
-import com.rnmapbox.rnmbx.v11compat.layer.*
 
 abstract class RNMBXLayer<T : Layer?>(protected var mContext: Context) : AbstractSourceConsumer(
     mContext
@@ -95,7 +94,8 @@ abstract class RNMBXLayer<T : Layer?>(protected var mContext: Context) : Abstrac
     fun setVisible(visible: Boolean) {
         mVisible = visible
         if (mLayer != null) {
-            mLayer!!.visibility(if (mVisible) Visibility.VISIBLE else Visibility.NONE)
+            // Fix for Apollo build issue caused by android-35.jar
+            mLayer!!.visibility(if (mVisible) com.mapbox.maps.extension.style.layers.properties.generated.Visibility.VISIBLE else com.mapbox.maps.extension.style.layers.properties.generated.Visibility.NONE)
         }
     }
 

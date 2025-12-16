@@ -297,6 +297,9 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             }
 
             override fun onMove(moveGestureDetector: MoveGestureDetector): Boolean {
+                 // Stop propagation move events when scroll gesture disabled to allow moving
+                 // route waypoints on the map
+                 if (!mapView.gestures.scrollEnabled) return true
                 return mapGesture(MapGestureType.Move, moveGestureDetector)
             }
 
@@ -969,8 +972,8 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
     fun queryRenderedFeaturesInRect(rect: RectF?, filter: Expression?, layerIDs: List<String>?, response: CommandResponse) {
         val size = mMap.getMapOptions().size
         val screenBox = if (rect == null) ScreenBox(ScreenCoordinate(0.0, 0.0), ScreenCoordinate(size?.width!!.toDouble(), size?.height!!.toDouble())) else ScreenBox(
-                ScreenCoordinate(rect.right.toDouble(), rect.bottom.toDouble() ),
                 ScreenCoordinate(rect.left.toDouble(), rect.top.toDouble()),
+                ScreenCoordinate(rect.right.toDouble(), rect.bottom.toDouble()),
         )
         mMap.queryRenderedFeatures(
                 RenderedQueryGeometry(screenBox),
@@ -1168,7 +1171,8 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             val layer = style.getLayer(it.id)
             if ((layer != null) && match(layer, sourceId, sourceLayerId)) {
                 layer.visibility(
-                    if (visible) Visibility.VISIBLE else Visibility.NONE
+                    // Fix for Apollo build issue caused by android-35.jar
+                    if (visible) com.mapbox.maps.extension.style.layers.properties.generated.Visibility.VISIBLE else com.mapbox.maps.extension.style.layers.properties.generated.Visibility.NONE
                 )
             }
         }
