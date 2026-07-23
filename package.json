@@ -171,12 +171,6 @@
         {
           "project": "tsconfig.build.json"
         }
-      ],
-      [
-        "custom",
-        {
-          "script": "build:copy-plugin"
-        }
       ]
     ]
   },
