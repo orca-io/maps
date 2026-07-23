@@ -93,7 +93,7 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
     private fun generateCustomDataPath(): File {
         val filesDir = mReactContext.filesDir
         val customRoot = File(filesDir, ".mapbox_custom")
-        val randomSuffix = UUID.randomUUID().toString().take(4)
+        val randomSuffix = UUID.randomUUID().toString()
         return File(customRoot, "$randomSuffix/map_data")
     }
 

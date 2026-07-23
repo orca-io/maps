@@ -485,8 +485,7 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
     let appSupport = fileManager.urls(for: .applicationSupportDirectory,
                                       in: .userDomainMask).first!
 
-    // Generate random suffix, e.g. "A1B2"
-    let randomSuffix = UUID().uuidString.prefix(4)
+    let randomSuffix = UUID().uuidString
     let folderName = ".mapbox_custom/\(randomSuffix)/map_data"
     let targetDir = appSupport.appendingPathComponent(folderName, isDirectory: true)
 
