@@ -6,11 +6,24 @@ class RNMBXOfflineModuleLegacy: RCTEventEmitter {
   final let CompleteRegionDownloadState = 2
   
   lazy var offlineRegionManager: OfflineRegionManager = {
-    #if RNMBX_11
+    let dataPathURL = try? RNMBXMapDataPath()
+
+  #if RNMBX_11
+    if let dataPathURL = dataPathURL {
+      MapboxMapsOptions.dataPath = dataPathURL
+    }
     return OfflineRegionManager()
-    #else
-    return OfflineRegionManager(resourceOptions: .init(accessToken: RNMBXModule.accessToken!))
-    #endif
+  #else
+    if let dataPathURL = dataPathURL {
+      return OfflineRegionManager(
+        resourceOptions: .init(
+          accessToken: RNMBXModule.accessToken ?? "",
+          dataPathURL: dataPathURL
+        )
+      )
+    }
+    return OfflineRegionManager(resourceOptions: .init(accessToken: RNMBXModule.accessToken ?? ""))
+  #endif
   }()
 
   @objc
@@ -431,6 +444,98 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
       resolve(true)
     } catch {
       reject("migrateOfflineCache error:", error.localizedDescription, error)
+    }
+  }
+
+  func reinitOfflineRegionManager(
+    _ resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let fileManager = FileManager.default
+    let targetDir: URL
+
+    do {
+      targetDir = try RNMBXNewMapDataPath()
+    } catch {
+      reject("dir_error", error.localizedDescription, error)
+      return
+    }
+
+    // Ensure directory exists
+    do {
+      try fileManager.createDirectory(
+        at: targetDir,
+        withIntermediateDirectories: true,
+        attributes: nil
+      )
+    } catch {
+      NSLog("RNMBXOfflineModuleLegacy: failed to create custom map_data dir: \(error)")
+      reject("dir_error", "Failed to create custom map_data directory", error)
+      return
+    }
+
+    DispatchQueue.main.async {
+      #if RNMBX_11
+      MapboxMapsOptions.dataPath = targetDir
+      self.offlineRegionManager = OfflineRegionManager()
+      #else
+      self.offlineRegionManager = OfflineRegionManager(
+        resourceOptions: .init(
+          accessToken: RNMBXModule.accessToken ?? "",
+          dataPathURL: targetDir
+        )
+      )
+      #endif
+
+      NSLog("RNMBXOfflineModuleLegacy: offlineRegionManager reinitialized with \(targetDir.path)")
+      resolve(nil)
+    }
+  }
+
+  @objc
+  func hardResetDatabase(
+    _ resolve: @escaping RCTPromiseResolveBlock,
+    reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let fileManager = FileManager.default
+    let appSupport: URL
+
+    do {
+      appSupport = try RNMBXApplicationSupportDirectory()
+    } catch {
+      reject("dir_error", error.localizedDescription, error)
+      return
+    }
+
+    let defaultMapDataDir = appSupport.appendingPathComponent(
+      ".mapbox/map_data",
+      isDirectory: true
+    )
+    let customMapDataDir = appSupport.appendingPathComponent(
+      ".mapbox_custom",
+      isDirectory: true
+    )
+
+    DispatchQueue.global(qos: .userInitiated).async {
+      do {
+        if fileManager.fileExists(atPath: defaultMapDataDir.path) {
+          try fileManager.removeItem(at: defaultMapDataDir)
+        }
+
+        if fileManager.fileExists(atPath: customMapDataDir.path) {
+          try fileManager.removeItem(at: customMapDataDir)
+        }
+      } catch {
+        NSLog("RNMBXOfflineModuleLegacy: hardResetDatabase failed: \(error)")
+        DispatchQueue.main.async {
+          reject("hard_reset_error", "Failed to remove Mapbox offline directories", error)
+        }
+        return
+      }
+
+      DispatchQueue.main.async {
+        self.reinitOfflineRegionManager(resolve, reject: reject)
+      }
     }
   }
 }

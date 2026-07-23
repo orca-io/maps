@@ -131,6 +131,20 @@ class OfflineManagerLegacy {
   }
 
   /**
+   * Fully resets offline region database file by deleting both `.mapbox/map_data` and `.mapbox_custom` directories,
+   * then reinitializes the OfflineRegionManager to point to a new data directory.
+   *
+   * Reinitialization is required because the Mapbox SDK does not automatically recreate the `map_data` database after deletion.
+   * After calling this, all subsequent offline region operations will use a fresh, isolated storage location.
+   * Unmount active MapView instances before calling this; SDK data path is fixed at MapView creation.
+   */
+  async hardResetDatabase(): Promise<void> {
+    await MapboxOfflineManager.hardResetDatabase();
+    this._offlinePacks = {};
+    await this._initialize(true);
+  }
+
+  /**
    * Retrieves all the current offline packs that are stored in the database.
    *
    * @example

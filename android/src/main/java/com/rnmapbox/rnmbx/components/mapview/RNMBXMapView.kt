@@ -1189,7 +1189,6 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
         }
         return null;
     }
-
     fun createMapView() : MapView {
         var created = false;
         mapViewImpl?.also {impl ->
@@ -1199,6 +1198,10 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             }
         }
         if (!created) {
+            val targetPath = resolveMapDataPath(mContext.filesDir)
+
+            MapboxMapsOptions.dataPath = targetPath.absolutePath
+
             var options: MapInitOptions? = null
             if (surfaceView == false) {
                 options = MapInitOptions(context = mContext, textureView = true)
@@ -1597,6 +1600,4 @@ fun OrnamentSettings.setPosAndMargins(posAndMargins: ReadableMap?) {
     this.position = position
     this.margins = margins
 }
-
-
 

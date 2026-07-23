@@ -25,8 +25,11 @@ import com.mapbox.maps.OfflineRegionStatus
 import com.mapbox.maps.OfflineRegionTilePyramidDefinition
 import com.rnmapbox.rnmbx.utils.ConvertUtils
 import com.rnmapbox.rnmbx.utils.extensions.toGeometryCollection
+import com.rnmapbox.rnmbx.utils.newMapDataPath
+import com.rnmapbox.rnmbx.utils.resolveMapDataPath
 import com.rnmapbox.rnmbx.utils.writableArrayOf
 import com.rnmapbox.rnmbx.v11compat.offlinemanager.getOfflineRegionManager
+import com.mapbox.maps.MapboxMapsOptions
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -55,10 +58,17 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
         return REACT_CLASS
     }
 
-    val offlineRegionManager: OfflineRegionManager by lazy {
-        getOfflineRegionManager {
-            RNMBXModule.getAccessToken(mReactContext)
+    @Volatile
+    private var offlineRegionManager: OfflineRegionManager = createOfflineRegionManager()
+
+    private fun createOfflineRegionManager(dataPath: File? = null): OfflineRegionManager {
+        val targetPath = dataPath ?: resolveMapDataPath(mReactContext.filesDir)
+        if (!targetPath.exists()) {
+            targetPath.mkdirs()
         }
+
+        MapboxMapsOptions.dataPath = targetPath.absolutePath
+        return getOfflineRegionManager { RNMBXModule.getAccessToken(mReactContext) }
     }
 
     private fun makeDefinition(
@@ -377,9 +387,6 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
     @ReactMethod
     fun setTileCountLimit(tileCountLimit: Int) {
         UiThreadUtil.runOnUiThread {
-            val offlineRegionManager = getOfflineRegionManager {
-                RNMBXModule.getAccessToken(mReactContext)
-            }
             offlineRegionManager.setOfflineMapboxTileCountLimit(tileCountLimit.toLong())
         }
     }
@@ -450,5 +457,56 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
             Log.w(LOG_TAG, "migrateOfflineCache only supported on api level 26 or later")
             promise.reject(mes)
         }
+    }
+
+    fun reinitOfflineRegionManager(promise: Promise) {
+        try {
+            val targetPath = newMapDataPath(mReactContext.filesDir)
+            if (!targetPath.exists()) {
+                targetPath.mkdirs()
+            }
+
+            UiThreadUtil.runOnUiThread {
+                try {
+                    offlineRegionManager = createOfflineRegionManager(targetPath)
+                    Log.d(LOG_TAG, "reinitOfflineRegionManager: using ${targetPath.absolutePath}")
+                    promise.resolve(null)
+                } catch (t: Throwable) {
+                    Log.e(LOG_TAG, "reinitOfflineRegionManager: failed", t)
+                    promise.reject("reinitOfflineRegionManager error:", t)
+                }
+            }
+        } catch (t: Throwable) {
+            Log.e(LOG_TAG, "reinitOfflineRegionManager: failed to prepare path", t)
+            promise.reject("reinitOfflineRegionManager error:", t)
+        }
+    }
+
+    @ReactMethod
+    fun hardResetDatabase(promise: Promise) {
+        Thread {
+            try {
+                val filesDir = mReactContext.filesDir
+                val defaultMapDataDir = File(filesDir, ".mapbox/map_data")
+                val customMapDataDir = File(filesDir, ".mapbox_custom")
+
+                Log.d(LOG_TAG, "hardResetDatabase: deleting ${defaultMapDataDir.absolutePath} and ${customMapDataDir.absolutePath}")
+
+                if (defaultMapDataDir.exists()) {
+                    defaultMapDataDir.deleteRecursively()
+                }
+
+                if (customMapDataDir.exists()) {
+                    customMapDataDir.deleteRecursively()
+                }
+
+                UiThreadUtil.runOnUiThread {
+                    reinitOfflineRegionManager(promise)
+                }
+            } catch (t: Throwable) {
+                Log.e(LOG_TAG, "hardResetDatabase: failed", t)
+                promise.reject("hardResetDatabase error:", t)
+            }
+        }.start()
     }
 }
