@@ -18,6 +18,7 @@ type GestureSettings = {
   doubleTouchToZoomOutEnabled?: boolean;
   pinchScrollEnabled?: boolean;
   pinchToZoomDecelerationEnabled?: boolean;
+  focalPoint?: Point;
 };
 
 type LocalizeLabels =
