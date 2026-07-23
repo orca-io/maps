@@ -136,6 +136,7 @@ class OfflineManagerLegacy {
    *
    * Reinitialization is required because the Mapbox SDK does not automatically recreate the `map_data` database after deletion.
    * After calling this, all subsequent offline region operations will use a fresh, isolated storage location.
+   * Unmount active MapView instances before calling this; SDK data path is fixed at MapView creation.
    */
   async hardResetDatabase(): Promise<void> {
     await MapboxOfflineManager.hardResetDatabase();

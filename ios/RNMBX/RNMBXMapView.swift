@@ -296,12 +296,11 @@ open class RNMBXMapView: UIView, RCTInvalidating {
       if accessToken == nil {
         Logger.log(level: .error, message: "No accessToken set, please call Mapbox.setAccessToken(...)")
       }
-      let resourceOptions = ResourceOptions(accessToken: accessToken ?? "", dataPathURL: dataPathURL)
-      
   #if RNMBX_11
-      _mapView = MapView(frame: self.bounds, mapInitOptions:  MapInitOptions(resourceOptions: resourceOptions))
+      MapboxMapsOptions.dataPath = dataPathURL
+      _mapView = MapView(frame: self.bounds, mapInitOptions:  MapInitOptions())
   #else
-
+      let resourceOptions = ResourceOptions(accessToken: accessToken ?? "", dataPathURL: dataPathURL)
       _mapView = MapView(frame: frame, mapInitOptions: MapInitOptions(resourceOptions: resourceOptions))
   #endif
       _mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -1963,4 +1962,3 @@ class RNMBXPointAnnotationManager : AnnotationInteractionDelegate {
     manager.refresh()
   }
 }
-

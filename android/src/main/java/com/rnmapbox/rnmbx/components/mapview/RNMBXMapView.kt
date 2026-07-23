@@ -71,6 +71,7 @@ import com.rnmapbox.rnmbx.v11compat.event.*
 import com.rnmapbox.rnmbx.v11compat.feature.*
 import com.rnmapbox.rnmbx.v11compat.mapboxmap.*
 import com.rnmapbox.rnmbx.v11compat.ornamentsettings.*
+import java.io.File
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -1622,6 +1623,5 @@ fun OrnamentSettings.setPosAndMargins(posAndMargins: ReadableMap?) {
     this.position = position
     this.margins = margins
 }
-
 
 

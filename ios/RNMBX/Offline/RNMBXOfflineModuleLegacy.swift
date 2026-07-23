@@ -44,12 +44,8 @@ class RNMBXOfflineModuleLegacy: RCTEventEmitter {
     let dataPathURL = customDataPath ?? defaultDataPath
 
   #if RNMBX_11
-    return OfflineRegionManager(
-      resourceOptions: .init(
-        accessToken: RNMBXModule.accessToken!,
-        dataPathURL: dataPathURL
-      )
-    )
+    MapboxMapsOptions.dataPath = dataPathURL
+    return OfflineRegionManager()
   #else
     return OfflineRegionManager(
       resourceOptions: .init(
@@ -509,12 +505,8 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
 
     DispatchQueue.main.async {
       #if RNMBX_11
-      self.offlineRegionManager = OfflineRegionManager(
-        resourceOptions: .init(
-          accessToken: RNMBXModule.accessToken!,
-          dataPathURL: targetDir
-        )
-      )
+      MapboxMapsOptions.dataPath = targetDir
+      self.offlineRegionManager = OfflineRegionManager()
       #else
       self.offlineRegionManager = OfflineRegionManager(
         resourceOptions: .init(
