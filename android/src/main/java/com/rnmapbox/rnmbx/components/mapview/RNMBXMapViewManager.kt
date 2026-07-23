@@ -15,6 +15,7 @@ import com.facebook.react.uimanager.ViewManagerDelegate
 import com.facebook.react.viewmanagers.RNMBXMapViewManagerDelegate
 import com.facebook.react.viewmanagers.RNMBXMapViewManagerInterface
 import com.mapbox.maps.MapInitOptions
+import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
@@ -26,6 +27,7 @@ import com.rnmapbox.rnmbx.utils.Logger
 import com.rnmapbox.rnmbx.utils.ViewTagResolver
 import com.rnmapbox.rnmbx.utils.extensions.getAndLogIfNotBoolean
 import com.rnmapbox.rnmbx.utils.extensions.getAndLogIfNotDouble
+import com.rnmapbox.rnmbx.utils.extensions.getAndLogIfNotMap
 import com.rnmapbox.rnmbx.utils.extensions.toCoordinate
 import com.rnmapbox.rnmbx.utils.extensions.toRectF
 import com.rnmapbox.rnmbx.utils.extensions.toScreenCoordinate
@@ -209,8 +211,20 @@ open class RNMBXMapViewManager(context: ReactApplicationContext, val viewTagReso
                    map.getAndLogIfNotDouble("zoomAnimationAmount", LOG_TAG)?.let {
                        this.zoomAnimationAmount = it.toFloat()
                    }
-               }
-           }
+                   val focalPointMap = map.getAndLogIfNotMap("focalPoint", LOG_TAG)
+                   if (focalPointMap != null) {
+                       val x = focalPointMap.getAndLogIfNotDouble("x", LOG_TAG)
+                       val y = focalPointMap.getAndLogIfNotDouble("y", LOG_TAG)
+                       if (x != null && y != null) {
+                           this.focalPoint = ScreenCoordinate(x, y)
+                       } else {
+                           this.focalPoint = null
+                       }
+                   } else {
+                       this.focalPoint = null
+                   }
+                }
+            }
         }
     }
 
