@@ -25,10 +25,11 @@ import com.mapbox.maps.OfflineRegionStatus
 import com.mapbox.maps.OfflineRegionTilePyramidDefinition
 import com.rnmapbox.rnmbx.utils.ConvertUtils
 import com.rnmapbox.rnmbx.utils.extensions.toGeometryCollection
+import com.rnmapbox.rnmbx.utils.newMapDataPath
+import com.rnmapbox.rnmbx.utils.resolveMapDataPath
 import com.rnmapbox.rnmbx.utils.writableArrayOf
 import com.rnmapbox.rnmbx.v11compat.offlinemanager.getOfflineRegionManager
 import com.mapbox.maps.MapboxMapsOptions
-import java.util.UUID
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.File
@@ -60,41 +61,14 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
     @Volatile
     private var offlineRegionManager: OfflineRegionManager = createOfflineRegionManager()
 
-    // This logic should be aligned with MapView data path @see android/src/main/java/com/rnmapbox/rnmbx/components/mapview/RNMBXMapView.kt
-    private fun resolveOfflineDataPath(): File {
-        val filesDir = mReactContext.filesDir
-        val defaultMapDataDir = File(filesDir, ".mapbox/map_data")
-        val customRoot = File(filesDir, ".mapbox_custom")
-
-        if (customRoot.exists()) {
-            customRoot.listFiles { entry -> entry.isDirectory }?.forEach { entry ->
-                val candidateMapData = File(entry, "map_data")
-                val candidateDb = File(candidateMapData, "map_data.db")
-
-                if (candidateDb.exists()) {
-                    return candidateMapData
-                }
-            }
-        }
-
-        return defaultMapDataDir
-    }
-
     private fun createOfflineRegionManager(dataPath: File? = null): OfflineRegionManager {
-        val targetPath = dataPath ?: resolveOfflineDataPath()
+        val targetPath = dataPath ?: resolveMapDataPath(mReactContext.filesDir)
         if (!targetPath.exists()) {
             targetPath.mkdirs()
         }
 
         MapboxMapsOptions.dataPath = targetPath.absolutePath
         return getOfflineRegionManager { RNMBXModule.getAccessToken(mReactContext) }
-    }
-
-    private fun generateCustomDataPath(): File {
-        val filesDir = mReactContext.filesDir
-        val customRoot = File(filesDir, ".mapbox_custom")
-        val randomSuffix = UUID.randomUUID().toString()
-        return File(customRoot, "$randomSuffix/map_data")
     }
 
     private fun makeDefinition(
@@ -487,7 +461,7 @@ class RNMBXOfflineModuleLegacy(private val mReactContext: ReactApplicationContex
 
     fun reinitOfflineRegionManager(promise: Promise) {
         try {
-            val targetPath = generateCustomDataPath()
+            val targetPath = newMapDataPath(mReactContext.filesDir)
             if (!targetPath.exists()) {
                 targetPath.mkdirs()
             }

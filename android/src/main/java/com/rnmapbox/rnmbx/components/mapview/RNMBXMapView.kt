@@ -71,7 +71,6 @@ import com.rnmapbox.rnmbx.v11compat.event.*
 import com.rnmapbox.rnmbx.v11compat.feature.*
 import com.rnmapbox.rnmbx.v11compat.mapboxmap.*
 import com.rnmapbox.rnmbx.v11compat.ornamentsettings.*
-import java.io.File
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -1190,28 +1189,6 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
         }
         return null;
     }
-
-
-    // This logic should be aligned with OfflineManager data path @see android/src/main/java/com/rnmapbox/rnmbx/modules/RNMBXOfflineModuleLegacy.kt
-    private fun resolveDataPath(): File {
-        val filesDir = mContext.filesDir
-        val defaultMapDataDir = File(filesDir, ".mapbox/map_data")
-        val customRoot = File(filesDir, ".mapbox_custom")
-
-        if (customRoot.exists()) {
-            customRoot.listFiles { entry -> entry.isDirectory }?.forEach { entry ->
-                val candidateMapData = File(entry, "map_data")
-                val candidateDb = File(candidateMapData, "map_data.db")
-
-                if (candidateDb.exists()) {
-                    return candidateMapData
-                }
-            }
-        }
-
-        return defaultMapDataDir
-    }
-
     fun createMapView() : MapView {
         var created = false;
         mapViewImpl?.also {impl ->
@@ -1221,7 +1198,7 @@ open class RNMBXMapView(private val mContext: Context, var mManager: RNMBXMapVie
             }
         }
         if (!created) {
-            val targetPath = resolveDataPath()
+            val targetPath = resolveMapDataPath(mContext.filesDir)
 
             MapboxMapsOptions.dataPath = targetPath.absolutePath
 
@@ -1623,5 +1600,4 @@ fun OrnamentSettings.setPosAndMargins(posAndMargins: ReadableMap?) {
     this.position = position
     this.margins = margins
 }
-
 

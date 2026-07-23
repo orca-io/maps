@@ -6,53 +6,23 @@ class RNMBXOfflineModuleLegacy: RCTEventEmitter {
   final let CompleteRegionDownloadState = 2
   
   lazy var offlineRegionManager: OfflineRegionManager = {
-    // This logic should be aligned with MapView initialization @see ios/RNMBX/RNMBXMapView.swift
-    let fileManager = FileManager.default
-    let appSupport = fileManager.urls(
-      for: .applicationSupportDirectory,
-      in: .userDomainMask
-    ).first!
-
-    // Default: Library/Application Support/.mapbox/map_data
-    let defaultDataPath = appSupport.appendingPathComponent(".mapbox/map_data")
-
-    // Preferred: Library/Application Support/.mapbox_custom/XXXX/map_data/map_data.db
-    var customDataPath: URL? = nil
-    let customRoot = appSupport.appendingPathComponent(".mapbox_custom", isDirectory: true)
-
-    if fileManager.fileExists(atPath: customRoot.path),
-      let entries = try? fileManager.contentsOfDirectory(
-        at: customRoot,
-        includingPropertiesForKeys: [.isDirectoryKey],
-        options: []
-      ) {
-      for entry in entries {
-        // Only consider subdirectories under .mapbox_custom
-        if let isDir = try? entry.resourceValues(forKeys: [.isDirectoryKey]).isDirectory,
-          isDir == true {
-          let candidateMapData = entry.appendingPathComponent("map_data", isDirectory: true)
-          let candidateDb = candidateMapData.appendingPathComponent("map_data.db")
-
-          if fileManager.fileExists(atPath: candidateDb.path) {
-            customDataPath = candidateMapData
-            break
-          }
-        }
-      }
-    }
-
-    let dataPathURL = customDataPath ?? defaultDataPath
+    let dataPathURL = try? RNMBXMapDataPath()
 
   #if RNMBX_11
-    MapboxMapsOptions.dataPath = dataPathURL
+    if let dataPathURL = dataPathURL {
+      MapboxMapsOptions.dataPath = dataPathURL
+    }
     return OfflineRegionManager()
   #else
-    return OfflineRegionManager(
-      resourceOptions: .init(
-        accessToken: RNMBXModule.accessToken!,
-        dataPathURL: dataPathURL
+    if let dataPathURL = dataPathURL {
+      return OfflineRegionManager(
+        resourceOptions: .init(
+          accessToken: RNMBXModule.accessToken ?? "",
+          dataPathURL: dataPathURL
+        )
       )
-    )
+    }
+    return OfflineRegionManager(resourceOptions: .init(accessToken: RNMBXModule.accessToken ?? ""))
   #endif
   }()
 
@@ -482,12 +452,14 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
     reject: @escaping RCTPromiseRejectBlock
   ) {
     let fileManager = FileManager.default
-    let appSupport = fileManager.urls(for: .applicationSupportDirectory,
-                                      in: .userDomainMask).first!
+    let targetDir: URL
 
-    let randomSuffix = UUID().uuidString
-    let folderName = ".mapbox_custom/\(randomSuffix)/map_data"
-    let targetDir = appSupport.appendingPathComponent(folderName, isDirectory: true)
+    do {
+      targetDir = try RNMBXNewMapDataPath()
+    } catch {
+      reject("dir_error", error.localizedDescription, error)
+      return
+    }
 
     // Ensure directory exists
     do {
@@ -509,7 +481,7 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
       #else
       self.offlineRegionManager = OfflineRegionManager(
         resourceOptions: .init(
-          accessToken: RNMBXModule.accessToken!,
+          accessToken: RNMBXModule.accessToken ?? "",
           dataPathURL: targetDir
         )
       )
@@ -526,10 +498,14 @@ func getRegionByName(name: String, offlineRegions: [OfflineRegion]) -> OfflineRe
     reject: @escaping RCTPromiseRejectBlock
   ) {
     let fileManager = FileManager.default
-    let appSupport = fileManager.urls(
-      for: .applicationSupportDirectory,
-      in: .userDomainMask
-    ).first!
+    let appSupport: URL
+
+    do {
+      appSupport = try RNMBXApplicationSupportDirectory()
+    } catch {
+      reject("dir_error", error.localizedDescription, error)
+      return
+    }
 
     let defaultMapDataDir = appSupport.appendingPathComponent(
       ".mapbox/map_data",
